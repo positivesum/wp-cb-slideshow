@@ -1,0 +1,80 @@
+/************************************************************************
+-) Slider: only the following lines are necceassary for slider styling,
+   rest of the css file styles the demo page
+*************************************************************************/
+.slideshow{ 
+/* height:320px; */ 	/*this changes the height of the image slider*/
+/* width:640px; */
+text-align: center;
+overflow: hidden;
+position: relative;
+background: #fff url(images/layout/preload.gif) center center no-repeat;
+}
+
+.slideshow li, .slideshow .featured{
+display: block;
+width:100%;
+/* height:100%; */
+/* position: absolute; */
+top:0;
+left:0;
+z-index: 1;
+}
+
+.js_active .slideshow li, .js_active .slideshow .featured{
+display:none;
+}
+
+.slideshow img, .slideshow a img, .slideshow a{
+border:none;
+text-decoration: none;
+}
+
+.slidecontrolls{
+margin:20px auto 0 auto;
+position: relative;
+float:left;
+}
+
+.slidecontrolls a {
+height:20px;
+width:18px;
+display:block;
+cursor: pointer;
+background: transparent url(images/layout/controlls.gif) center bottom no-repeat;
+float:left;
+outline: none;
+}
+
+.slidecontrolls a:hover, .slidecontrolls .active_item{
+background: transparent url(images/layout/controlls.gif) center top no-repeat;
+}
+
+.feature_excerpt{
+/* width:610px;
+position: absolute;
+display: block; */
+display: none;
+bottom: 0;
+left:0;
+z-index: 2;
+padding:14px 15px;
+font-size: 11.5px;
+line-height:1.5em;
+cursor: pointer;
+background: #000;
+color: #fff;
+}
+
+.feature_excerpt strong{
+display: block;
+font-size: 15px;
+padding-bottom: 3px;
+}
+
+.center{ /*center content area */
+text-align: center;
+position: relative;
+margin:0 auto;
+/* width:640px; */
+}
