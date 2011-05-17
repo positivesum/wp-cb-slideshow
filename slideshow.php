@@ -135,8 +135,13 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 				}
 				$output .= "<{$itemtag} class='gallery-item'>";
 				$output .= "$link";
-				if (strlen($attachment->post_excerpt) && strlen($attachment->post_content)) {
-					$output .= '<div class="description"><div class="content"><b>'.$attachment->post_excerpt.'</b><br/>'.$attachment->post_content.'</div></div>';
+				if (strlen($attachment->post_excerpt)) {
+                    $output .= '<div class="description">';
+                    $output .= '<div class="content"><b>'.$attachment->post_excerpt.'</b>';
+                    if (strlen($attachment->post_content)) {
+                        $output .= '<br/>'.$attachment->post_content;
+                    }
+                    $output .= '</div></div>';
 				}
 				$output .= "</{$itemtag}>";
 			}
