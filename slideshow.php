@@ -1,6 +1,10 @@
 <?php
 if (!class_exists('cfct_module_image')) {
-	require_once(dirname(dirname(__FILE__)).'/image/image.php');
+    if ( defined( 'CFCT_BUILD_DIR' ) ) {
+        require_once( CFCT_BUILD_DIR.'/modules/image/image.php' );
+    } else {
+        require_once( dirname(dirname(__FILE__)).'/image/image.php' );
+    }
 }
 if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image')) {
 	class cfct_module_slideshow extends cfct_module_image {
