@@ -20,17 +20,22 @@ if ( !class_exists( 'wp_cb_slideshow' ) ) {
 			$this->pluginUrl 		= WP_PLUGIN_URL.'/'.$this->pluginDir;	
 		
 			add_action('get_header', array(&$this, 'wp_cb_slideshow_get_header'));
+            add_action('admin_head', array(&$this, 'wp_cb_slideshow_admin_head'));
 			add_action('cfct-modules-loaded',  array(&$this, 'wp_cb_slideshow_load'));	
 		}
 
 		function wp_cb_slideshow_load() {
 			require_once($this->pluginPath . "/slideshow.php");				
-		}			
+		}
+
+        function wp_cb_slideshow_admin_head() {
+            echo "<script type='text/javascript' src='".$this->pluginUrl . '/js/dnd.js'."'></script>";
+        }
 
 		function wp_cb_slideshow_get_header() {
 				wp_enqueue_style('slideshow', $this->pluginUrl . '/css/style.css' );			
-				wp_enqueue_style('prettyPhoto', $this->pluginUrl . '/js/prettyPhoto/css/prettyPhoto.css' );						
-				wp_enqueue_script('prettyPhoto', $this->pluginUrl . '/js/prettyPhoto/js/jquery.prettyPhoto.js', array('jquery'), '1.0');
+				wp_enqueue_style('prettyPhoto', $this->pluginUrl . '/js/prettyPhoto/css/prettyPhoto.css' );
+                wp_enqueue_script('prettyPhoto', $this->pluginUrl . '/js/prettyPhoto/js/jquery.prettyPhoto.js', array('jquery'), '1.0');
 				wp_enqueue_script('aviaSlider', $this->pluginUrl . '/js/jquery.aviaSlider.min.js', array('jquery'), '1.0');
 		}
 

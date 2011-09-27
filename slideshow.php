@@ -1,5 +1,5 @@
 <?php
-if (!class_exists('cfct_module_image')) {
+if ( false == class_exists( 'cfct_module_image' ) ) {
     if ( defined( 'CFCT_BUILD_DIR' ) ) {
         require_once( CFCT_BUILD_DIR.'/modules/image/image.php' );
     } else {
@@ -22,6 +22,7 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 				'description' => __('Select and insert images as a gallery.', 'carrington-build'),
 				'icon' => 'wp-cb-slideshow/slideshow-icon.png'
 			);
+
 			cfct_build_module::__construct('cfct-module-slideshow', __('Slideshow', 'carrington-build'), $opts);
 		}
 		
@@ -161,6 +162,7 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 		 * @return string HTML
 		 */
 		public function admin_form($data) {
+
 			cfct_module_register_extra('slideshow-display-option', 'slideshow_display_option');	//							
 			cfct_module_register_extra('slideshow-autoplay-option', 'slideshow_autoplay_option');	//					
 			cfct_module_register_extra('slideshow-transition-option', 'slideshow_transition_option');	//											
@@ -168,10 +170,112 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 			$html = '
 					<div id="'.$this->id_base.'-post-image-wrap">
 						'.$this->post_image_selector($data, true).'
+						'.$this->admin_form_images_details().'
 					</div>											
 				';
+
 			return $html;
 		}
+
+        public function admin_form_images_details() {
+            // Get post ajax arguments
+            $args = cf_json_decode(stripslashes($_POST['args']), true);
+            // Init output
+            $html = '<div id="'.$this->id_base.'-post-images-details" class="post-images-details">';
+            // Get post images
+            $imgs = $this->_get_images();
+            $_imgs = array();
+            foreach ($imgs as $img) {
+                $pos = get_post_meta($img->ID, 'image_position', true);
+
+                if (empty($pos)) {
+                    $pos = 0;
+                }
+
+                $sort[$img->ID] = $pos;
+                $_imgs[$img->ID] = $img;
+            }
+
+            asort($sort);
+
+
+            foreach ($sort as $id => $pos) {
+                $img = $_imgs[$id];
+                $img_src = wp_get_attachment_image_src($img->ID);
+                $img_src = $img_src[0];
+                $url = get_post_meta($img->ID, 'image_url', true);
+
+                $html .= <<< HTML
+                <div class="post-image-details" data-image-id="{$img->ID}">
+                    <input type="hidden" name="image[{$img->ID}][position]" value="{$pos}" />
+                    <div class="cfct-row-handle" title="Drag and drop to reorder">
+					    <a href="#" class="cfct-row-delete">Remove</a>
+				    </div>
+                    <div class="part thumb">
+                        <img src="{$img_src}" />
+                    </div>
+                    <div class="part fields">
+                        <ul>
+                            <li>
+                                <label>Label</label>
+                                <input type="text" name="image[{$img->ID}][label]" value="{$img->post_title}" />
+                            </li>
+                            <li>
+                                <label>Caption</label>
+                                <textarea name="image[{$img->ID}][caption]">{$img->post_excerpt}</textarea>
+                            </li>
+                            <li>
+                                <label>URL</label>
+                                <input type="text" name="image[{$img->ID}][url]" value="{$url}"/>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+HTML;
+            }
+
+            $html .= '</div>';
+
+            return $html;
+        }
+
+        /**
+         * Get images for current post
+         * @return array
+         */
+        private function _get_images() {
+            $args = cf_json_decode(stripslashes($_POST['args']), true);
+
+            $attachment_args = array(
+                'post_type' => 'attachment',
+                'post_mime_type' => 'image',
+                'numberposts' => -1,
+                'post_status' => 'inherit',
+                'post_parent' => $args['post_id'],
+                'orderby' => 'title',
+                'order' => 'ASC'
+            );
+
+            $attachments = get_posts($attachment_args);
+
+            if (count($attachments)) {
+                // push the featured image to the front of the list of images
+                $featured_image_id = get_post_meta($args['post_id'], '_thumbnail_id', true);
+                if (!empty($featured_image_id)) {
+                    foreach ($attachments as $key => $attachment) {
+                        if ($attachment->ID == $featured_image_id) {
+                            unset($attachments[$key]);
+                            $attachment->is_featured_image = true;
+                            array_unshift($attachments, $attachment);
+                            break;
+                        }
+                    }
+                }
+
+            }
+
+            return $attachments;
+        }
 		
 		/**
 		 * Return a textual representation of this module.
@@ -198,7 +302,28 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 		public function update($new_data, $old_data) {
 			cfct_module_register_extra('slideshow-display-option', 'slideshow_display_option');	//									
 			cfct_module_register_extra('slideshow-autoplay-option', 'slideshow_autoplay_option');	//					
-			cfct_module_register_extra('slideshow-transition-option', 'slideshow_transition_option');	//								
+			cfct_module_register_extra('slideshow-transition-option', 'slideshow_transition_option');	//
+
+
+            // Update image details
+            if (isset($new_data['image'])) {
+                // Get post ajax arguments
+
+                foreach ($new_data['image'] as $id => $val) {
+                    $img = get_post($id);
+                    // Label
+                    $img->post_title = $val['label'];
+                    // Caption
+                    $img->post_excerpt = $val['caption'];
+                    // Update post data
+                    wp_update_post($img);
+                    // URL
+                    update_post_meta($id, 'image_url', $val['url']);
+                    // Position
+                    update_post_meta($id, 'image_position', $val['position']);
+                }
+            }
+
 			return $new_data;
 		}
 		
@@ -208,18 +333,120 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 		 * @return string JavaScript
 		 */
 		public function admin_js() {
-			$js = '
-				cfct_builder.addModuleSaveCallback("'.$this->id_base.'", function() {
+			$js = <<< JS
+			    var id_base = '$this->id_base';
+				cfct_builder.addModuleSaveCallback(id_base, function() {
 					// find the non-active image selector and clear his value
-					$("#'.$this->id_base.'-image-selectors .cfct-module-tab-contents>div:not(.active)").find("input:hidden").val("");
+					$("#'$this->id_base'-image-selectors .cfct-module-tab-contents>div:not(.active)").find("input:hidden").val("");
+					
 					return true;
 				});
-			';
+
+                cfct_builder.addModuleLoadCallback(id_base, function () {
+
+                    //
+                    var details = $('#'+id_base+'-post-images-details').clone(true);
+                    $('#'+id_base+'-post-images-details').remove();
+                    $(details).insertAfter('#'+id_base+'-post-image-wrap');
+                    //
+                    $('#'+id_base+'-post-images-details').sortable({
+                         items: 'div.post-image-details',
+                         update: function () {
+                            $('#'+id_base+'-post-images-details .post-image-details:visible').each(function (i, el) {
+                                $(this).find('input[name$="[position]"]').val(i);
+                            });
+                         }
+                    });
+                    //
+                    $('#'+id_base+'-post-images-details').find('.post-image-details').hide();
+                    //
+                    $('#'+id_base+'-post-images-details').find('.cfct-row-delete').click(function () {
+                            var ID = $(this).parent().parent().attr('data-image-id');
+                            $('#'+id_base+'-post-images-details').find('.post-image-details[data-image-id="'+ID+'"]').hide();
+                            $('#'+id_base+'-post-image-wrap').find('.active[data-image-id="'+ID+'"]').removeClass('active');
+                            var ids = [];
+                            $('.cfct-image-select-items .active').each(function () {
+                                ids.push($(this).attr('data-image-id'));
+                            });
+
+                            $('#'+id_base+'-post_image').val(ids.join(','));
+
+                    });
+                    //
+                    $('.cfct-image-select-items-list-item.active').each(function () {
+                        var ID = $(this).attr('data-image-id');
+                        $('#'+id_base+'-post-images-details').find('.post-image-details[data-image-id="'+ID+'"]').show();
+                    });
+
+                    // Click on image
+                    $('.cfct-image-select-items-list-item').click(function () {
+                        var ID = $(this).attr('data-image-id');
+
+                        // First or second click
+                        if ($(this).hasClass('active')) {
+                            $('#'+id_base+'-post-images-details').find('.post-image-details[data-image-id="'+ID+'"]').hide();
+                        } else {
+                            $('#'+id_base+'-post-images-details').find('.post-image-details[data-image-id="'+ID+'"]').show();
+                        }
+                    });
+                });
+JS;
 			// @deprecated
 			#$js .= $this->post_image_selector_js('post_image', array('direction' => 'horizontal'));
 			$js .= $this->global_image_selector_js('global_image', array('direction' => 'horizontal'));
 			return $js;
 		}
+
+        /**
+         * Add custom css to the post/page admin
+         *
+         * @return string
+         */
+        public function admin_css() {
+            $css = '
+                .post-image-details {
+                    cursor: move;
+                    float: left;
+                    width: 730px;
+                    background-color: #EFEEEE;
+                    border: 1px solid #CCCCCC;
+                    border-radius: 4px 4px 4px 4px;
+                    display: block;
+                    padding: 5px;
+                }
+                .post-image-details img {
+                    border: 1px solid #333333;
+                }
+                .post-image-details .part {
+                    float: left;
+                }
+                .post-image-details .cfct-row-handle {
+                    background: none;
+                    float: left;
+                    position: relative;
+                }
+                .post-image-details textarea {
+                    height: 47px;
+                }
+                .post-image-details li {
+                    margin-bottom: 0;
+                }
+                .post-image-details .fields {
+                    padding: 0 10px;
+                    width: 530px;
+                }
+
+                .cfct-image-select-size {
+                    float: left;
+                }
+
+                .ui-sortable .cfct-row-handle:hover {
+                    background: none;
+                }
+            ';
+
+            return $css;
+        }
 	}
 		
 	// register the module with Carrington Build

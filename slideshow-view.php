@@ -38,7 +38,7 @@ jQuery(document).ready(function(){
 		
 	});
 	width = width/count;
-	height = height/count;	
+	height = height/count;
 	
 	jQuery('.center').css({'width': width, 'height': height});	
 	jQuery('.slideshow').css({'width': width, 'height': height});

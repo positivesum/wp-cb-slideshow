@@ -7,6 +7,7 @@ jQuery(document).ready(function(){
 		display: 'all',
 		transitionOrder: ['diagonaltop', 'diagonalbottom','topleft', 'bottomright', 'random']
 	});
-																										
 });
+
+
 
