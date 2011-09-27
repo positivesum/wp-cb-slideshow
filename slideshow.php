@@ -42,7 +42,14 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 			$link = ($data["cfct-module-options"]["slideshow-display-option"]["slideshow-link"][0] != '') ?  $data["cfct-module-options"]["slideshow-display-option"]["slideshow-link"][0] : 'nothing';		
 			$display = ($data["cfct-module-options"]["slideshow-display-option"]["slideshow-display"][0] != '') ?  $data["cfct-module-options"]["slideshow-display-option"]["slideshow-display"][0] : 'false';
 			$random_slide = ($data["cfct-module-options"]["slideshow-display-option"]["slideshow-random"][0] != '') ?  $data["cfct-module-options"]["slideshow-display-option"]["slideshow-random"][0] : 'no';
-			if ($display == 'items') {
+
+            /* Font Size Options */
+            // Header font size
+            $header_font = $data["cfct-module-options"]["slideshow-display-option"]["slideshow-header-font-size"];
+            // Description font size
+            $desc_font = $data["cfct-module-options"]["slideshow-display-option"]["slideshow-desc-font-size"];
+
+            if ($display == 'items') {
 				$display = '"'.$display.'"';
 			}
 			$autoplay = ($data["cfct-module-options"]["slideshow-autoplay-option"]["slideshow-autoplay"][0] != '') ?  $data["cfct-module-options"]["slideshow-autoplay-option"]["slideshow-autoplay"][0] : 'true';
@@ -57,7 +64,9 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 					'include' => $data[$this->get_field_name('post_image')],
 					'size' => $data[$this->get_field_name('post_image').'-size'],
 					'linkurl' => $link,
-                    'randomize' => $random_slide
+                    'randomize' => $random_slide,
+                    'header_font' => $header_font,
+                    'desc_font' => $desc_font
 				);
 
 				remove_filter('post_gallery', 'cfct_post_gallery', 10, 2);
@@ -67,7 +76,7 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 			else {
 				$slideshow_html = null;
 			}
-				return $this->load_view($data, compact('slideshow_html', 'display', 'random_slide', 'autoplay', 'autoplay_delay','transition', 'transition_delay'));
+				return $this->load_view($data, compact('slideshow_html', 'display', 'random_slide', 'autoplay', 'autoplay_delay','transition', 'transition_delay', 'header_font', 'desc_font'));
 		}
 
 		function slideshow_shortcode($attr) {
@@ -140,11 +149,19 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 				}
 				$output .= "<{$itemtag} class='gallery-item'>";
 				$output .= "$link";
-				if (strlen($attachment->post_excerpt)) {
+                if (strlen($attachment->post_excerpt)) {
+                    $header_font = '';
+                    if ($attr['header_font']) {
+                        $header_font = 'style = "font-size:'.$attr['header_font'].'px!important;"';
+                    }
                     $output .= '<div class="description">';
-                    $output .= '<div class="content"><b>'.$attachment->post_excerpt.'</b>';
+                    $output .= '<div class="content"><b '.$header_font.'>'.$attachment->post_excerpt.'</b>';
                     if (strlen($attachment->post_content)) {
-                        $output .= '<br/>'.$attachment->post_content;
+                        $desc_font = '';
+                        if ($attr['desc_font']) {
+                            $desc_font = 'style = "font-size:'.$attr['desc_font'].'px!important;"';
+                        }
+                        $output .= '<br/><span '.$desc_font.'>'.$attachment->post_content.'</span>';
                     }
                     $output .= '</div></div>';
 				}
@@ -537,6 +554,10 @@ if (!class_exists('slideshow_display_option')) {
 			if (!empty($data['slideshow-link'])) {
 				$slideshow_link = implode(' ', array_map('esc_attr', $data['slideshow-link']));
 			}
+
+            /* Font size options */
+            $header_font = $data['slideshow-header-font-size'];
+            $desc_font = $data['slideshow-desc-font-size'];
 			
 			// set default link target
 			$slide_indicator = $this->slide_indicator($data);
@@ -570,6 +591,26 @@ if (!class_exists('slideshow_display_option')) {
 								<label for="'.$this->get_field_name('slideshow-random').'_no">'.__('No', 'carrington-build').'</label>
 							</li>
 						</ul>
+					</div>
+                    <div style="margin: 12px 0;">
+                        <label for="">Header Font Size</label>
+                        <div class="cfct-select-menu-wrapper">
+                            <ul style="display:inline">
+                                <li style="display:inline">
+                                    <input style="width:50px" value="'.$header_font.'" type="text" name="'.$this->get_field_name('slideshow-header-font-size').'" id="'.$this->get_field_name('slideshow-header-font-size').'" />&nbsp;px
+                                </li>
+                            </ul>
+                        </div>
+					</div>
+					<div style="margin: 12px 0;">
+                        <label for="">Description Font Size</label>
+                        <div class="cfct-select-menu-wrapper">
+                            <ul style="display:inline">
+                                <li style="display:inline">
+                                    <input style="width:50px" value="'.$desc_font.'" type="text" name="'.$this->get_field_name('slideshow-desc-font-size').'" id="'.$this->get_field_name('slideshow-desc-font-size').'" />&nbsp;px
+                                </li>
+                            </ul>
+                        </div>
 					</div>
 					';
 			return $html;
@@ -694,6 +735,11 @@ if (!class_exists('slideshow_display_option')) {
 					$ret['slideshow-random'][] = sanitize_title_with_dashes(trim(strip_tags($class)));
 				}
 			}
+
+            /* Font Size Options */
+            $ret['slideshow-header-font-size'] = $new_data['slideshow-header-font-size'];
+            $ret['slideshow-desc-font-size'] = $new_data['slideshow-desc-font-size'];
+
 			return $ret;
 		}		
 	}	
