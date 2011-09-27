@@ -185,6 +185,7 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
             // Get post images
             $imgs = $this->_get_images();
             $_imgs = array();
+            $sort = array();
             foreach ($imgs as $img) {
                 $pos = get_post_meta($img->ID, 'image_position', true);
 
