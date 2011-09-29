@@ -149,11 +149,12 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 					break;				
 				default:
                     $src = wp_get_attachment_image($id, $size, false, false);
-					$link = '<a href="'.$url.'>'.$src.'</a>';
+					//$link = '<a href="'.$url.'>'.$src.'</a>';
 				}
 
 				$output .= "<{$itemtag} class='gallery-item'>";
 				$output .= "$link";
+                $output .= '<!-- '.$url.' -->';
 
                 if (strlen($attachment->post_title)) {
                     $header_font = '';
