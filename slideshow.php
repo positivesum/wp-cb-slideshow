@@ -148,7 +148,13 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
                     $link = wp_get_attachment_link($id, $size, false, false);
 					break;				
 				default:
-                    $link = wp_get_attachment_link($id, $size, true, false);
+                    $src = wp_get_attachment_image($id, $size, false, false);
+                    if ($url) {
+                        $link = $src;
+                    } else {
+                        $link = '<a href="'.$url.'">'.$src.'</a>';
+                    }
+
 					//$link = '<a href="'.$url.'>'.$src.'</a>';
 				}
 
