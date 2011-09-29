@@ -135,42 +135,39 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 			$selector = "slideshow-{$id}";
 			$output = apply_filters('gallery_style', "<ul id='$selector' class='slideshow slideshowid-{$id}'>");
 
+
 			$i = 0;
 			foreach ( $attachments as $id => $attachment ) {
+                $url = get_post_meta($attachment->ID, 'image_url', true);
+
 				switch ($linkurl) {
 				case 'nothing':
 					$link = wp_get_attachment_image($id, $size, false, false);												
 					break;
 				case 'lightbox':
-					$link = wp_get_attachment_link($id, $size, false, false);				
+                    $link = wp_get_attachment_link($id, $size, false, false);
 					break;				
 				default:
-					$link = wp_get_attachment_link($id, $size, true, false);								
+                    $src = wp_get_attachment_image($id, $size, false, false);
+					$link = '<a href="'.$url.'>'.$src.'</a>';
 				}
 
-                $url = get_post_meta($attachment->ID, 'image_url', true);
-
-                $click = '';
-                if ($url) {
-                    $click = 'style="cursor:pointer;" onclick="location.href=\''.$url.'\'"';
-                }
-
-				$output .= "<{$itemtag} class='gallery-item' ".$click.">";
-
+				$output .= "<{$itemtag} class='gallery-item'>";
 				$output .= "$link";
-                if (strlen($attachment->post_excerpt)) {
+
+                if (strlen($attachment->post_title)) {
                     $header_font = '';
                     if ($attr['header_font']) {
                         $header_font = 'style = "font-size:'.$attr['header_font'].'px!important;"';
                     }
                     $output .= '<div class="description">';
-                    $output .= '<div class="content"><b '.$header_font.'>'.$attachment->post_excerpt.'</b>';
-                    if (strlen($attachment->post_content)) {
+                    $output .= '<div class="content"><b '.$header_font.'>'.$attachment->post_title.'</b>';
+                    if (strlen($attachment->post_excerpt)) {
                         $desc_font = '';
                         if ($attr['desc_font']) {
                             $desc_font = 'style = "font-size:'.$attr['desc_font'].'px!important;"';
                         }
-                        $output .= '<br/><span '.$desc_font.'>'.$attachment->post_content.'</span>';
+                        $output .= '<br/><span '.$desc_font.'>'.$attachment->post_excerpt.'</span>';
                     }
                     $output .= '</div></div>';
 				}
