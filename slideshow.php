@@ -147,7 +147,16 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 				default:
 					$link = wp_get_attachment_link($id, $size, true, false);								
 				}
-				$output .= "<{$itemtag} class='gallery-item'>";
+
+                $url = get_post_meta($attachment->ID, 'image_url', true);
+
+                $click = '';
+                if ($url) {
+                    $click = 'style="cursor:pointer;" onclick="location.href=\''.$url.'\'"';
+                }
+
+				$output .= "<{$itemtag} class='gallery-item' ".$click.">";
+
 				$output .= "$link";
                 if (strlen($attachment->post_excerpt)) {
                     $header_font = '';
