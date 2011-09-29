@@ -150,9 +150,9 @@ if (!class_exists('cfct_module_slideshow') && class_exists('cfct_module_image'))
 				default:
                     $src = wp_get_attachment_image($id, $size, false, false);
                     if ($url) {
-                        $link = $src;
-                    } else {
                         $link = '<a href="'.$url.'">'.$src.'</a>';
+                    } else {
+                        $link = $src;
                     }
 
 					//$link = '<a href="'.$url.'>'.$src.'</a>';
